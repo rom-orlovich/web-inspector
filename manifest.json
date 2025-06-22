@@ -30,21 +30,8 @@
         "mac": "Command+Shift+L"
       },
       "description": "Toggle Visual Element Inspector"
-    },
-    "toggle-select-mode": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+U",
-        "mac": "Command+Shift+U"
-      },
-      "description": "Toggle Select Element Mode"
-    },
-    "take-screenshot": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+Y",
-        "mac": "Command+Shift+Y"
-      },
-      "description": "Take Screenshot of Selected Element"
     }
+
   },
   "icons": {
     "16": "icons/icon16.png",

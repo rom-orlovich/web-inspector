@@ -91,52 +91,6 @@ if (chrome.commands && chrome.commands.onCommand) {
             } else {
                 console.log('🎯 No active tab found');
             }
-        } else if (command === 'toggle-select-mode') {
-            console.log('🎯 Toggle Select Mode command matched! Getting active tab...');
-            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-            
-            if (tab) {
-                console.log('🎯 Active tab found:', tab.id, tab.url);
-                try {
-                    console.log('🎯 Sending toggleSelectMode message to content script...');
-                    const response = await chrome.tabs.sendMessage(tab.id, { action: 'toggleSelectMode' });
-                    
-                    if (response && response.success) {
-                        console.log('🎯 Select mode toggled successfully via keyboard shortcut');
-                    } else {
-                        console.log('🎯 Content script not responding to select mode shortcut');
-                    }
-                } catch (error) {
-                    console.error('🎯 Failed to toggle select mode via keyboard shortcut:', error);
-                    // Try to inject content script if connection failed
-                    await ensureContentScriptInjected(tab.id, 'toggleSelectMode');
-                }
-            } else {
-                console.log('🎯 No active tab found');
-            }
-        } else if (command === 'take-screenshot') {
-            console.log('🎯 Take Screenshot command matched! Getting active tab...');
-            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-            
-            if (tab) {
-                console.log('🎯 Active tab found:', tab.id, tab.url);
-                try {
-                    console.log('🎯 Sending takeScreenshot message to content script...');
-                    const response = await chrome.tabs.sendMessage(tab.id, { action: 'takeScreenshot' });
-                    
-                    if (response && response.success) {
-                        console.log('🎯 Screenshot taken successfully via keyboard shortcut');
-                    } else {
-                        console.log('🎯 Content script not responding to screenshot shortcut');
-                    }
-                } catch (error) {
-                    console.error('🎯 Failed to take screenshot via keyboard shortcut:', error);
-                    // Try to inject content script if connection failed
-                    await ensureContentScriptInjected(tab.id, 'takeScreenshot');
-                }
-            } else {
-                console.log('🎯 No active tab found');
-            }
         } else {
             console.log('🎯 Command did not match any known commands:', command);
         }
