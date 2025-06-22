@@ -175,10 +175,9 @@
             this.selectBtn.innerHTML = '<span class="icon">🎯</span> Inspecting...';
             this.selectBtn.classList.add('active');
             document.addEventListener('mouseover', this.boundHandleMouseOver, true);
-            // Use bubble phase (false) instead of capture phase for click events
-            document.addEventListener('click', this.boundHandleClick, false);
+            // Only listen for right-click (contextmenu) events
             document.addEventListener('contextmenu', this.boundHandleContextMenu, true);
-            this.showNotification('🎯 Left-click to inspect • Right-click for dropdowns/buttons');
+            this.showNotification('🎯 Right-click to inspect elements');
         },
         
         deactivate() {
@@ -188,7 +187,7 @@
             this.selectBtn.classList.remove('active');
             this.removeHighlight();
             document.removeEventListener('mouseover', this.boundHandleMouseOver, true);
-            document.removeEventListener('click', this.boundHandleClick, false);
+            // Only remove contextmenu listener since we're not adding click listener anymore
             document.removeEventListener('contextmenu', this.boundHandleContextMenu, true);
         },
 
