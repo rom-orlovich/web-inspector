@@ -457,9 +457,9 @@
             const elementInfo = `${element.tagName.toLowerCase()}${element.className ? '.' + element.className.toString().split(' ')[0] : ''}`;
             
             if (isInteractive) {
-                tooltip.innerHTML = `${elementInfo}<br><small>⬅️ Left-click: interact + capture | 🖱️ Right-click: capture only</small>`;
+                tooltip.innerHTML = `${elementInfo}<br><small>🖱️ Right-click to inspect</small>`;
             } else {
-                tooltip.textContent = elementInfo;
+                tooltip.innerHTML = `${elementInfo}<br><small>🖱️ Right-click to inspect</small>`;
             }
             
             tooltip.style.cssText = `top:${Math.max(10, rect.top + window.scrollY - 50)}px; left:${Math.max(10, rect.left + window.scrollX)}px;`;
