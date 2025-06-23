@@ -5,32 +5,93 @@
 (function() {
     console.log('🔍 Loading Enhanced Visual Element Inspector with CSS Extraction...');
 
-    const HTML2CANVAS_URL = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+    // Use extension's local html2canvas resource instead of external URL
+    // This bypasses CSP restrictions since it's loaded from the extension itself
+    let HTML2CANVAS_URL = '';  // Will be set dynamically based on extension context
 
     // Clean up any existing inspector to prevent conflicts
     if (window.visualInspector) {
         window.visualInspector.destroy();
     }
 
-    // Function to dynamically load the html2canvas library with fallbacks
-    function loadScript(url) {
+    // Function to load html2canvas from extension's web accessible resources (bypassing CSP)
+    function loadScript() {
         return new Promise((resolve, reject) => {
             if (window.html2canvas) return resolve(); // Already loaded
             
+            // Try three approaches to load html2canvas, in order of preference
+            tryExtensionResourceLoad()
+                .catch(() => tryRuntimeGetUrlLoad())
+                .catch(() => tryDirectInlineLoad())
+                .then(resolve)
+                .catch(reject);
+        });
+    }
+    
+    // Method 1: Check if we're in an extension context with web accessible resources
+    function tryExtensionResourceLoad() {
+        return new Promise((resolve, reject) => {
+            try {
+                // Check if we have access to chrome extension API
+                if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getURL) {
+                    const scriptURL = chrome.runtime.getURL('html2canvas.min.js');
+                    injectScriptFile(scriptURL, resolve, reject);
+                    console.log('Loading html2canvas from extension URL:', scriptURL);
+                } else {
+                    reject(new Error('Not in extension context'));
+                }
+            } catch (e) {
+                reject(e);
+            }
+        });
+    }
+    
+    // Method 2: Try to get URL via message passing (for content scripts)
+    function tryRuntimeGetUrlLoad() {
+        return new Promise((resolve, reject) => {
+            try {
+                if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+                    chrome.runtime.sendMessage({ action: 'getHtml2CanvasUrl' }, response => {
+                        if (response && response.url) {
+                            injectScriptFile(response.url, resolve, reject);
+                            console.log('Loading html2canvas via messaging URL:', response.url);
+                        } else {
+                            reject(new Error('Failed to get URL via messaging'));
+                        }
+                    });
+                } else {
+                    reject(new Error('Runtime messaging not available'));
+                }
+            } catch (e) {
+                reject(e);
+            }
+        });
+    }
+    
+    // Method 3: Try direct injection as last resort
+    function tryDirectInlineLoad() {
+        return new Promise((resolve) => {
+            console.warn('Using fallback direct script injection method');
+            // For this to work, you would need the actual html2canvas code here
+            // This is not ideal but serves as a last resort
             const script = document.createElement('script');
-            script.src = url;
+            script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
             script.onload = resolve;
             script.onerror = () => {
-                // Try fallback URLs if primary fails
-                const fallbackUrls = [
-                    'https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js',
-                    'https://cdn.skypack.dev/html2canvas@1.4.1'
-                ];
-                
-                tryFallbacks(fallbackUrls, 0, resolve, reject);
+                console.error('All html2canvas loading methods failed');
+                resolve(); // Resolve anyway to allow inspector to function without screenshots
             };
             document.head.appendChild(script);
         });
+    }
+    
+    // Helper to inject a script from a URL
+    function injectScriptFile(url, onSuccess, onError) {
+        const script = document.createElement('script');
+        script.src = url;
+        script.onload = onSuccess;
+        script.onerror = onError;
+        document.head.appendChild(script);
     }
     
     function tryFallbacks(urls, index, resolve, reject) {

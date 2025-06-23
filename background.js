@@ -185,6 +185,47 @@ chrome.runtime.onStartup.addListener(() => {
     console.log('Visual Element Inspector extension started');
 });
 
+// Add message handler for html2canvas URL requests - helps bypass CSP restrictions
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    console.log('Message received in background:', request.action);
+    
+    // Handle request for HTML2Canvas URL
+    if (request.action === 'getHtml2CanvasUrl') {
+        try {
+            const html2canvasUrl = chrome.runtime.getURL('html2canvas.min.js');
+            console.log('Providing html2canvas URL:', html2canvasUrl);
+            sendResponse({ success: true, url: html2canvasUrl });
+        } catch (error) {
+            console.error('Error providing html2canvas URL:', error);
+            sendResponse({ success: false, error: error.message });
+        }
+        return true; // Keep message channel open for async response
+    }
+    
+    // Handle request to inject HTML2Canvas directly
+    if (request.action === 'injectHtml2Canvas') {
+        try {
+            // Use scripting API to inject the file directly
+            // This bypasses CSP since extensions can inject scripts
+            chrome.scripting.executeScript({
+                target: { tabId: sender.tab.id },
+                files: ['html2canvas.min.js']
+            }).then(() => {
+                console.log('Successfully injected html2canvas via scripting API');
+                sendResponse({ success: true });
+            }).catch(error => {
+                console.error('Failed to inject html2canvas:', error);
+                sendResponse({ success: false, error: error.message });
+            });
+            return true; // Keep message channel open for async response
+        } catch (error) {
+            console.error('Error setting up html2canvas injection:', error);
+            sendResponse({ success: false, error: error.message });
+            return false;
+        }
+    }
+});
+
 // Helper function to ensure content script is injected
 async function ensureContentScriptInjected(tabId, action) {
     try {
